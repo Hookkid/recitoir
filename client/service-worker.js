@@ -1,12 +1,12 @@
-import { precacheStaticAssets, removeUnusedCaches, ALL_CACHES, ALL_CACHES_LIST } from './sw/caches';
+import { precacheStaticAssets, removeUnusedCaches, ALL_CACHES, ALL_CACHES_LIST } from './sw/caches'
 import idb from 'idb'
 
 const FALLBACK_IMAGE_URLS = ['beef', 'chicken', 'pork', 'pasta', 'fish', 'vegetarian', 'fruit', 'dessert']
-  .map(name => `https://localhost:3100/images/${name}-fallback.png`);
-const FALLBACK_IMAGES = ALL_CACHES.fallbackImages;
+  .map(name => `https://localhost:3100/images/${name}-fallback.png`)
+const FALLBACK_IMAGES = ALL_CACHES.fallbackImages
 
-const INDEX_HTML_PATH = '/';
-const INDEX_HTML_URL = new URL(INDEX_HTML_PATH, self.location).toString();
+const INDEX_HTML_PATH = '/'
+const INDEX_HTML_URL = new URL(INDEX_HTML_PATH, self.location).toString()
 
 function recitoirDb() {
   return idb.open('recitoir-store', 1, upgradeDb => {
@@ -14,7 +14,7 @@ function recitoirDb() {
     // deliberately allow fall-through case blocks
     case 0:
       // initial setup
-      upgradeDb.createObjectStore('recipes', { keyPath: 'id' });
+      upgradeDb.createObjectStore('recipes', { keyPath: 'id' })
     }
   })
 }
@@ -27,21 +27,19 @@ function downloadRecipes() {
     fetch('https://localhost:3100/api/recipe/list')
       .then(response => response.json())
       .then( ({ data: groceryItems }) => {
-        let tx = db.transaction('recipes', 'readwrite');
-        tx.objectStore('recipes').clear();
+        let tx = db.transaction('recipes', 'readwrite')
+        tx.objectStore('recipes').clear()
         return tx.complete.then(() => {
-          console.log('yoyo')
-          let txx = db.transaction('recipes', 'readwrite');
-          let store = txx.objectStore('recipes');
-          groceryItems.forEach(groceryItem => store.put(groceryItem));
-          return txx.complete;
-        });
+          let txx = db.transaction('recipes', 'readwrite')
+          let store = txx.objectStore('recipes')
+          groceryItems.forEach(groceryItem => store.put(groceryItem))
+          return txx.complete
+        })
       })
   })
 }
 
 self.addEventListener('install', event => {
-  console.log('install')
   event.waitUntil(
     Promise.all([
       // Get the fallback image
@@ -53,41 +51,35 @@ self.addEventListener('install', event => {
       // Populate IndexedDb with grocery items
       downloadRecipes()
     ])
-  );
-});
+  )
+})
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    removeUnusedCaches(ALL_CACHES_LIST));
-});
-
-  
-self.addEventListener('push', event => {
-  console.log('push');
-});
-
+    removeUnusedCaches(ALL_CACHES_LIST))
+})
 
 self.addEventListener('fetch', event => {
-  let acceptHeader = event.request.headers.get('accept');
-  let requestUrl = new URL(event.request.url);
-  let isGroceryImage = acceptHeader.indexOf('image/*') >= 0 && requestUrl.pathname.indexOf('/images/') === 0;
-  let isFromApi = requestUrl.origin.indexOf('localhost:3100') >= 0;
-  let isHTML = event.request.headers.get('accept').indexOf('text/html') !== -1;
-  let isLocal = new URL(event.request.url).origin === location.origin;
+  let acceptHeader = event.request.headers.get('accept')
+  let requestUrl = new URL(event.request.url)
+  let isGroceryImage = acceptHeader.indexOf('image/*') >= 0 && requestUrl.pathname.indexOf('/images/') === 0
+  let isFromApi = requestUrl.origin.indexOf('localhost:3100') >= 0
+  let isHTML = event.request.headers.get('accept').indexOf('text/html') !== -1
+  let isLocal = new URL(event.request.url).origin === location.origin
 
   if (isHTML && isLocal) {
     event.respondWith(
       fetch(event.request)
         .catch(() => caches.match(INDEX_HTML_URL, { cacheName: ALL_CACHES.prefetch}))
-    );
-    return;
+    )
+    return
   }
 
   event.respondWith(
     caches.match(event.request, { cacheName: ALL_CACHES.prefetch })
       .then(response => {
         // Cache hit! Return the precached response
-        if (response) return response;
+        if (response) return response
         // Handle grocery images
         if (acceptHeader && isGroceryImage) {
           return fetchImageOrFallback(event)
@@ -95,22 +87,45 @@ self.addEventListener('fetch', event => {
           return  fetchApiJsonWithFallback(event)
         } else {
           // Everything else falls back to the network
-          return fetch(event.request);
+          return fetch(event.request)
         }
       })
-  );
-});
+  )
+})
+
+self.addEventListener('push', event => {
+  let { data } = event
+  let textData = data.text()
+  if (textData === 'TERMINATE') {
+    self.registration.unregister()
+    return
+  }
+  console.log('PUSH RECEIVED', textData)
+  let eventData = event.data.json()
+  console.log('event', eventData)
+  if ('notification' in eventData) {
+    let { notification } = eventData
+    self.registration.showNotification(
+      notification.title,
+      {
+        body: notification.body,
+        icon: 'https://localhost:3100/img/launcher-icon-4x.png',
+      }
+    )
+  }
+})
+
 
 function fallbackImageForRequest(request) {
-  let url = new URL(request.url);
-  let pathName = url.pathname;
-  let itemId = parseInt(pathName.substring(pathName.lastIndexOf('/') + 1, pathName.lastIndexOf('.')), 10);
+  let url = new URL(request.url)
+  let pathName = url.pathname
+  let itemId = parseInt(pathName.substring(pathName.lastIndexOf('/') + 1, pathName.lastIndexOf('.')), 10)
   return recitoirDb().then(db => {
-    let tx = db.transaction('recipes');
-    let store = tx.objectStore('recipes');
-    return store.get(itemId);
+    let tx = db.transaction('recipes')
+    let store = tx.objectStore('recipes')
+    return store.get(itemId)
   }).then(recipe => {
-    let { category } = recipe;
+    let { category } = recipe
     return caches.match(`https://localhost:3100/images/${category.toLowerCase() || 'recipe'}-fallback.png`, { cacheName: FALLBACK_IMAGES})
   })
 }
@@ -119,23 +134,23 @@ function fallbackImageForRequest(request) {
 function fetchImageOrFallback(fetchEvent) {
   return fetch(fetchEvent.request, {mode: 'cors'})
     .then((response) => {
-      let responseClone = response.clone();
+      let responseClone = response.clone()
       if (!response.ok){
-        return fallbackImageForRequest(fetchEvent.request);
+        return fallbackImageForRequest(fetchEvent.request)
       }
       caches.open(ALL_CACHES.fallback).then(cache => {        
         // Successful response
         if (response.ok) {
           // Begin the process of adding the response to the cache
-          cache.put(fetchEvent.request, responseClone);
+          cache.put(fetchEvent.request, responseClone)
         }
       })
-      return response;
+      return response
     })
     .catch(() => {
       return caches.match(fetchEvent.request, {cacheName: ALL_CACHES.fallback}).then(response => {
-        return response || fallbackImageForRequest(fetchEvent.request);
-      });
+        return response || fallbackImageForRequest(fetchEvent.request)
+      })
     })
 }
 
@@ -147,17 +162,17 @@ function fetchApiJsonWithFallback(fetchEvent) {
     return fetch(fetchEvent.request)
       .then(response => {
         // Clone the response so we can return one and store one
-        let responseClone = response.clone();
+        let responseClone = response.clone()
         // Successful response
         if (response.ok) {
           // Begin the process of adding the response to the cache
-          cache.put(fetchEvent.request, responseClone);
+          cache.put(fetchEvent.request, responseClone)
         }
         // Return the original response
-        return response;
+        return response
       })
       .catch(() => {
-        return cache.match(fetchEvent.request);
+        return cache.match(fetchEvent.request)
       })
     // cache.add or addAll (request or url)
   })
