@@ -1,7 +1,5 @@
 #### General Packages
 
-Please make sure you have the following general software installed
-
 | Required | Library | Version Range | Notes |
 | ------------- | ------------- | ---| --- |
 | ✔ | [Node.js](http://nodejs.com/)  | >= 7.10 | [nvm](https://github.com/creationix/nvm) is highly recommended for managing multiple node versions on a single machine |
@@ -11,8 +9,6 @@ Please make sure you have the following general software installed
 | ✔ | [SQLite 3](http://sqlite.com/)  | >= 3 | Embedded database |
 
 #### VS Code Extensions
-
-Additionally, to take advantage of syntax hilighting, static code analysis and other editor features, you'll want to install the latest version of the following VS Code extensions
 
 | Required | Extension | Notes |
 | ------------- | ------------- | --- |
@@ -25,8 +21,6 @@ Additionally, to take advantage of syntax hilighting, static code analysis and o
 
 #### Global Node.js Packages
 
-Make sure you have these npm packages installed globally. This can be done by running
-
 ```
 npm install -g <package-name>
 ```
@@ -38,10 +32,6 @@ npm install -g <package-name>
 | ✔ | [eslint-plugin-babel](https://github.com/babel/eslint-plugin-babel)  | ^4.0.0 |
 | ✔ | [eslint-plugin-react](https://github.com/yannickcr/eslint-plugin-react)  | ^7.1.0 |
 | ✔ | [web-push](https://github.com/web-push-libs/web-push)  | ^3.0.0 |
-
-#### Project setup
-
-Finally, while in the top-level folder of this project, download the and install this project's dependencies by running
 
 ```
 yarn
