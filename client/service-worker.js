@@ -1,7 +1,7 @@
 import { precacheStaticAssets, removeUnusedCaches, ALL_CACHES, ALL_CACHES_LIST } from './sw/caches';
 import idb from 'idb'
 
-const FALLBACK_IMAGE_URLS = ['beef', 'chicken', 'pork', 'pasta', 'fish', 'vegetables', 'fruit', 'dessert']
+const FALLBACK_IMAGE_URLS = ['beef', 'chicken', 'pork', 'pasta', 'fish', 'vegetarian', 'fruit', 'dessert']
   .map(name => `https://localhost:3100/images/${name}-fallback.png`);
 const FALLBACK_IMAGES = ALL_CACHES.fallbackImages;
 
