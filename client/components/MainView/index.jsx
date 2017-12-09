@@ -3,29 +3,34 @@ import './index.scss'
 import {
   Link
 } from 'react-router-dom'
+import { endpoint as API_ENDPOINT } from '../../utils/api';
 
 class MainView extends Component{
   constructor(props) {
     super(props);
-    this.state = { categories: this.props.recipeStore.categories };
+    this.state = { recipes: this.props.recipeStore._recipes };
   }
   componentDidMount() {
-    this.props.recipeStore.categoryListeners.register((newCategories) => {
-      this.setState({categories: newCategories});
+    this.props.recipeStore.itemListeners.register((newItems) => {
+      this.setState({recipes: newItems});
     })
-    this.props.recipeStore.updateCategories();
+    this.props.recipeStore.updateRecipes();
   }
 
   render() {
-    return (
-      <main className="main">
-        <div className="card cardTemplate weather-forecast">
-          <h2>Beef Stew</h2>
-          <p>This versatile and veggie-full meal is as good as it is nutritious!</p>
-          <img src="https://images.media-allrecipes.com/images/51805.jpg?width=170&height=96" />
-          {console.log('store', this.props.recipeStore)}
+    const CategoryList = this.state.recipes.map((recipe) => (
+      <div key={Date.now()}>
+        <h2>{recipe.category}</h2>
+        <div className='card cardTemplate weather-forecast'>
+          <h3>{recipe.name}</h3>
+          <p>{recipe.description}</p>
+          <img src={`${API_ENDPOINT}${recipe.imageUrl}`} />
         </div>
-
+      </div>
+    ));
+    return (
+      <main className='main'>
+        {CategoryList}
       </main>
 
     )

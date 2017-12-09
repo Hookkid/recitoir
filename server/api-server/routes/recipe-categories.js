@@ -4,7 +4,6 @@ module.exports = function (api) {
   let _cachedResults = null;
 
   return function (req, res) {
-    console.log('APIASDASDF')
     if (_cachedResults) {
       res.json({ data: _cachedResults });
       return Promise.resolve(_cachedResults);

@@ -18,7 +18,6 @@ export default class RecipeStore {
     // restore items to get their initial state
     this._recipes = [];
     this._restoreRecipes().then((restoredRecipes) => {
-      console.log('000000000000000000000')
       this._recipes = restoredRecipes;
       this._onItemsUpdated();
     });
@@ -103,7 +102,6 @@ export default class RecipeStore {
    * @return {Promise<ReadonlyArray<Object>>}
    */
   updateItemsForCategory(categoryName, limit = 10) {
-    console.log('11111111111111111111')
     return fetch(`${API_ENDPOINT}api/recipe/items?category=${categoryName}&limit=${limit}`)
       .then((resp) => resp.json())
       .then((jsonData) => {
@@ -125,9 +123,8 @@ export default class RecipeStore {
    * @public
    * @return {Promise<ReadonlyArray<String>>}
    */
-  updateCategories() {
-    console.log('777777777777')
-    return fetch(`${API_ENDPOINT}api/recipe/categories`)
+  updateRecipes() {
+    return fetch(`${API_ENDPOINT}api/recipe/list`)
       .then((resp) => resp.json())
       .then((jsonData) => {
         let categories = jsonData.data.map((item) => item.category);
@@ -142,14 +139,26 @@ export default class RecipeStore {
   }
   
   /**
-   * Get the "initial" state for recipes
-   * For we'll start with an empty array, but we'll enhance this later!
+   * Retrieve fresh data for recipes.
+   * They will get pushed into the store, and any appropriate listeners will
+   * fire as a result of this process.
    * 
-   * @private
-   * @return {Promise}
+   * @public
+   * @return {Promise<ReadonlyArray<Object>>}
    */
   _restoreRecipes() {
-    return Promise.resolve([]);
+    return fetch(`${API_ENDPOINT}api/recipe/list`)
+      .then((resp) => resp.json())
+      .then((jsonData) => {
+        let recipes = jsonData.data.map((item) => item);
+        this._recipes = recipes;
+        this._onItemsUpdated();
+        return this.items;
+      })
+      .catch((err) => {
+        console.error('Error updating categories', err);
+        return this.items;
+      });
   }
 
   /**

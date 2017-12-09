@@ -4,7 +4,7 @@ module.exports = function () {
       routes: {
         get: {
           '/recipe/categories': 'recipe category list',
-          '/recipe/items': 'recipe item list',
+          '/recipe/list': 'recipe item list',
           '/': 'This page'
         },
         put: {
